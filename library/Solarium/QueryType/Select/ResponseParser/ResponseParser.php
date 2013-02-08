@@ -95,9 +95,16 @@ class ResponseParser extends ResponseParserAbstract implements ResponseParserInt
             $numFound = null;
         }
 
+        if (isset($data['response']['start'])) {
+            $start = $data['response']['start'];
+        } else {
+            $start = null;
+        }
+
         return $this->addHeaderInfo(
             $data,
             array(
+                'start' => $start,
                 'numfound' => $numFound,
                 'documents' => $documents,
                 'components' => $components

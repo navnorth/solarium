@@ -147,6 +147,20 @@ class Result extends BaseResult implements \IteratorAggregate, \Countable
     }
 
     /**
+     * get Solr start
+     *
+     * Returns the starting point of documents found by Solr
+     *
+     * @return int
+     */
+    public function getStart()
+    {
+        $this->parseResponse();
+
+        return $this->start;
+    }
+
+    /**
      * Get all documents
      *
      * @return DocumentInterface[]
