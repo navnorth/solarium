@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2011 Bas de Nooijer. All rights reserved.
+ * Copyright 2012 Bas de Nooijer. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,7 +28,7 @@
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of the copyright holder.
  *
- * @copyright Copyright 2011 Bas de Nooijer <solarium@raspberry.nl>
+ * @copyright Copyright 2012 Bas de Nooijer <solarium@raspberry.nl>
  * @license http://github.com/basdenooijer/solarium/raw/master/COPYING
  * @link http://www.solarium-project.org/
  */
@@ -36,19 +36,29 @@
 /**
  * @namespace
  */
-namespace Solarium\QueryType\Update\Query;
+namespace Solarium\QueryType\RealtimeGet;
+
+use Solarium\Core\Client\Request;
+use Solarium\Core\Query\RequestBuilder as BaseRequestBuilder;
+use Solarium\Core\Query\QueryInterface;
 
 /**
- * Solr update document interface
+ * Build a RealtimeGet request
  */
-interface DocumentInterface
+class RequestBuilder extends BaseRequestBuilder
 {
-
     /**
-     * Constructor
+     * Build request for a ping query
      *
-     * @param array $fields
+     * @param  QueryInterface|Query $query
+     * @return Request
      */
-    public function __construct(array $fields = array(), array $boosts = array());
+    public function build(QueryInterface $query)
+    {
+        $request = parent::build($query);
+        $request->setMethod(Request::METHOD_GET);
+        $request->addParam('ids', implode(',', $query->getIds()));
 
+        return $request;
+    }
 }

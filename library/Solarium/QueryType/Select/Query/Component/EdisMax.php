@@ -37,7 +37,9 @@
  * @namespace
  */
 namespace Solarium\QueryType\Select\Query\Component;
+
 use Solarium\QueryType\Select\Query\Query as SelectQuery;
+use Solarium\QueryType\Select\RequestBuilder\Component\EdisMax as RequestBuilder;
 
 /**
  * EdisMax component
@@ -46,7 +48,6 @@ use Solarium\QueryType\Select\Query\Query as SelectQuery;
  */
 class EdisMax extends DisMax
 {
-
     /**
      * Default options
      *
@@ -64,6 +65,16 @@ class EdisMax extends DisMax
     public function getType()
     {
         return SelectQuery::COMPONENT_EDISMAX;
+    }
+
+    /**
+     * Get a requestbuilder for this query
+     *
+     * @return RequestBuilder
+     */
+    public function getRequestBuilder()
+    {
+        return new RequestBuilder;
     }
 
     /**
@@ -220,5 +231,4 @@ class EdisMax extends DisMax
     {
         return $this->getOption('userfields');
     }
-
 }

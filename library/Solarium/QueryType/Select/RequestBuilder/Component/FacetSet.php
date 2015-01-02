@@ -37,6 +37,7 @@
  * @namespace
  */
 namespace Solarium\QueryType\Select\RequestBuilder\Component;
+
 use Solarium\Core\Client\Request;
 use Solarium\QueryType\Select\RequestBuilder\RequestBuilder;
 use Solarium\QueryType\Select\Query\Component\FacetSet as FacetsetComponent;
@@ -44,6 +45,7 @@ use Solarium\QueryType\Select\Query\Component\Facet\Field as FacetField;
 use Solarium\QueryType\Select\Query\Component\Facet\MultiQuery as FacetMultiQuery;
 use Solarium\QueryType\Select\Query\Component\Facet\Query as FacetQuery;
 use Solarium\QueryType\Select\Query\Component\Facet\Range as FacetRange;
+use Solarium\QueryType\Select\Query\Component\Facet\Pivot as FacetPivot;
 use Solarium\Exception\UnexpectedValueException;
 
 /**
@@ -51,7 +53,6 @@ use Solarium\Exception\UnexpectedValueException;
  */
 class FacetSet extends RequestBuilder implements ComponentRequestBuilderInterface
 {
-
     /**
      * Add request settings for FacetSet
      *
@@ -88,6 +89,9 @@ class FacetSet extends RequestBuilder implements ComponentRequestBuilderInterfac
                         break;
                     case FacetsetComponent::FACET_RANGE:
                         $this->addFacetRange($request, $facet);
+                        break;
+                    case FacetsetComponent::FACET_PIVOT:
+                        $this->addFacetPivot($request, $facet);
                         break;
                     default:
                         throw new UnexpectedValueException('Unknown facet type');
@@ -181,6 +185,7 @@ class FacetSet extends RequestBuilder implements ComponentRequestBuilderInterfac
         $request->addParam("f.$field.facet.range.end", $facet->getEnd());
         $request->addParam("f.$field.facet.range.gap", $facet->getGap());
         $request->addParam("f.$field.facet.range.hardend", $facet->getHardend());
+        $request->addParam("f.$field.facet.mincount", $facet->getMinCount());
 
         foreach ($facet->getOther() as $otherValue) {
             $request->addParam("f.$field.facet.range.other", $otherValue);
@@ -189,5 +194,24 @@ class FacetSet extends RequestBuilder implements ComponentRequestBuilderInterfac
         foreach ($facet->getInclude() as $includeValue) {
             $request->addParam("f.$field.facet.range.include", $includeValue);
         }
+    }
+
+    /**
+     * Add params for a range facet to request
+     *
+     * @param  Request    $request
+     * @param  FacetPivot $facet
+     * @return void
+     */
+    public function addFacetPivot($request, $facet)
+    {
+        $request->addParam(
+            'facet.pivot',
+            $this->renderLocalParams(
+                implode(',', $facet->getFields()),
+                array('key' => $facet->getKey(), 'ex' => $facet->getExcludes())
+            )
+        );
+        $request->addParam('facet.pivot.mincount', $facet->getMinCount(), true);
     }
 }

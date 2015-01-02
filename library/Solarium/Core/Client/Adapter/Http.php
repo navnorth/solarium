@@ -37,6 +37,7 @@
  * @namespace
  */
 namespace Solarium\Core\Client\Adapter;
+
 use Solarium\Core\Configurable;
 use Solarium\Core\Client\Request;
 use Solarium\Core\Client\Response;
@@ -48,7 +49,6 @@ use Solarium\Exception\HttpException;
  */
 class Http extends Configurable implements AdapterInterface
 {
-
     /**
      * Handle Solr communication
      *
@@ -127,9 +127,16 @@ class Http extends Configurable implements AdapterInterface
             }
         }
 
-        $authData = $request->getAuthentication();
-        if ( !empty($authData['username']) && !empty($authData['password'])) {
-            $request->addHeader('Authorization: Basic ' . base64_encode($authData['username']. ':' . $authData['password'] ));
+        // Try endpoint authentication first, fallback to request for backwards compatibility
+        $authData = $endpoint->getAuthentication();
+        if (empty($authData['username'])) {
+            $authData = $request->getAuthentication();
+        }
+
+        if (!empty($authData['username']) && !empty($authData['password'])) {
+            $request->addHeader(
+                'Authorization: Basic ' . base64_encode($authData['username'] . ':' . $authData['password'])
+            );
         }
 
         $headers = $request->getHeaders();
@@ -166,5 +173,4 @@ class Http extends Configurable implements AdapterInterface
         return array($data, $headers);
         // @codeCoverageIgnoreEnd
     }
-
 }

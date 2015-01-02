@@ -30,13 +30,13 @@
  */
 
 namespace Solarium\Tests\QueryType\Select\Query\Component\Highlighting;
+
 use Solarium\QueryType\Select\Query\Component\Highlighting\Highlighting;
 use Solarium\QueryType\Select\Query\Component\Highlighting\Field;
 use Solarium\QueryType\Select\Query\Query;
 
 class HighlightingTest extends \PHPUnit_Framework_TestCase
 {
-
     /**
      * @var Highlighting
      */
@@ -64,6 +64,7 @@ class HighlightingTest extends \PHPUnit_Framework_TestCase
             'maxanalyzedchars' => 40,
             'alternatefield' => 'text',
             'maxalternatefieldlength' => 50,
+            'preservemulti' => true,
             'formatter' => 'myFormatter',
             'simpleprefix' => '<b>',
             'simplepostfix' => '</b>',
@@ -81,11 +82,16 @@ class HighlightingTest extends \PHPUnit_Framework_TestCase
             'query' => 'text:myvalue',
             'phraselimit' => 35,
             'multivaluedseparatorchar' => '|',
+            'boundaryscannermaxscan' => 12,
+            'boundaryscannerchars' => "\t\n",
+            'boundaryscannertype' => 'LINE',
+            'boundaryscannerlanguage' => 'nl',
+            'boundaryscannercountry' => 'NL',
         );
 
         $this->hlt->setOptions($options);
 
-        $this->assertEquals(array('fieldA','fieldB'), array_keys($this->hlt->getFields()));
+        $this->assertEquals(array('fieldA', 'fieldB'), array_keys($this->hlt->getFields()));
         $this->assertEquals($options['field']['fieldA']['snippets'], $this->hlt->getField('fieldA')->getSnippets());
         $this->assertEquals($options['field']['fieldA']['fragsize'], $this->hlt->getField('fieldA')->getFragSize());
         $this->assertEquals(null, $this->hlt->getField('FieldB')->getSnippets());
@@ -95,6 +101,7 @@ class HighlightingTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($options['maxanalyzedchars'], $this->hlt->getMaxAnalyzedChars());
         $this->assertEquals($options['alternatefield'], $this->hlt->getAlternateField());
         $this->assertEquals($options['maxalternatefieldlength'], $this->hlt->getMaxAlternateFieldLength());
+        $this->assertEquals($options['preservemulti'], $this->hlt->getPreserveMulti());
         $this->assertEquals($options['formatter'], $this->hlt->getFormatter());
         $this->assertEquals($options['simpleprefix'], $this->hlt->getSimplePrefix());
         $this->assertEquals($options['simplepostfix'], $this->hlt->getSimplePostfix());
@@ -112,6 +119,11 @@ class HighlightingTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($options['query'], $this->hlt->getQuery());
         $this->assertEquals($options['phraselimit'], $this->hlt->getPhraseLimit());
         $this->assertEquals($options['multivaluedseparatorchar'], $this->hlt->getMultiValuedSeparatorChar());
+        $this->assertEquals($options['boundaryscannermaxscan'], $this->hlt->getBoundaryScannerMaxScan());
+        $this->assertEquals($options['boundaryscannerchars'], $this->hlt->getBoundaryScannerChars());
+        $this->assertEquals($options['boundaryscannertype'], $this->hlt->getBoundaryScannerType());
+        $this->assertEquals($options['boundaryscannerlanguage'], $this->hlt->getBoundaryScannerLanguage());
+        $this->assertEquals($options['boundaryscannercountry'], $this->hlt->getBoundaryScannerCountry());
     }
 
     public function testGetType()
@@ -121,12 +133,18 @@ class HighlightingTest extends \PHPUnit_Framework_TestCase
 
     public function testGetResponseParser()
     {
-        $this->assertInstanceOf('Solarium\QueryType\Select\ResponseParser\Component\Highlighting', $this->hlt->getResponseParser());
+        $this->assertInstanceOf(
+            'Solarium\QueryType\Select\ResponseParser\Component\Highlighting',
+            $this->hlt->getResponseParser()
+        );
     }
 
     public function testGetRequestBuilder()
     {
-        $this->assertInstanceOf('Solarium\QueryType\Select\RequestBuilder\Component\Highlighting', $this->hlt->getRequestBuilder());
+        $this->assertInstanceOf(
+            'Solarium\QueryType\Select\RequestBuilder\Component\Highlighting',
+            $this->hlt->getRequestBuilder()
+        );
     }
 
     public function testGetFieldAutocreate()
@@ -167,7 +185,7 @@ class HighlightingTest extends \PHPUnit_Framework_TestCase
     {
         $config = array(
             'name' => 'fieldA',
-            'snippets' => 6
+            'snippets' => 6,
         );
         $this->hlt->addField($config);
 
@@ -186,7 +204,7 @@ class HighlightingTest extends \PHPUnit_Framework_TestCase
         $fields = 'test1,test2';
         $this->hlt->addFields($fields);
 
-        $this->assertEquals(array('test1','test2'), array_keys($this->hlt->getFields()));
+        $this->assertEquals(array('test1', 'test2'), array_keys($this->hlt->getFields()));
     }
 
     public function testAddsFieldsWithArray()
@@ -209,7 +227,7 @@ class HighlightingTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->hlt->addFields($fields);
-        $this->assertEquals(array('test1','test2'), array_keys($this->hlt->getFields()));
+        $this->assertEquals(array('test1', 'test2'), array_keys($this->hlt->getFields()));
 
         $this->hlt->removeField('test1');
         $this->assertEquals(array('test2'), array_keys($this->hlt->getFields()));
@@ -223,10 +241,10 @@ class HighlightingTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->hlt->addFields($fields);
-        $this->assertEquals(array('test1','test2'), array_keys($this->hlt->getFields()));
+        $this->assertEquals(array('test1', 'test2'), array_keys($this->hlt->getFields()));
 
         $this->hlt->removeField('test1=3'); // should fail silently and do nothing
-        $this->assertEquals(array('test1','test2'), array_keys($this->hlt->getFields()));
+        $this->assertEquals(array('test1', 'test2'), array_keys($this->hlt->getFields()));
     }
 
     public function testClearFields()
@@ -237,7 +255,7 @@ class HighlightingTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->hlt->addFields($fields);
-        $this->assertEquals(array('test1','test2'), array_keys($this->hlt->getFields()));
+        $this->assertEquals(array('test1', 'test2'), array_keys($this->hlt->getFields()));
 
         $this->hlt->clearFields();
         $this->assertEquals(array(), array_keys($this->hlt->getFields()));
@@ -251,7 +269,7 @@ class HighlightingTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->hlt->addFields($fields);
-        $this->assertEquals(array('test1','test2'), array_keys($this->hlt->getFields()));
+        $this->assertEquals(array('test1', 'test2'), array_keys($this->hlt->getFields()));
 
         $newFields = array(
             'test3' => array('snippets' => 4),
@@ -259,7 +277,7 @@ class HighlightingTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->hlt->setFields($newFields);
-        $this->assertEquals(array('test3','test4'), array_keys($this->hlt->getFields()));
+        $this->assertEquals(array('test3', 'test4'), array_keys($this->hlt->getFields()));
     }
 
     public function testSetAndGetSnippets()
@@ -336,6 +354,17 @@ class HighlightingTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(
             $value,
             $this->hlt->getMaxAlternateFieldLength()
+        );
+    }
+    
+    public function testSetAndGetPreserveMulti()
+    {
+        $value = true;
+        $this->hlt->setPreserveMulti($value);
+
+        $this->assertEquals(
+            $value,
+            $this->hlt->getPreserveMulti()
         );
     }
 
@@ -525,4 +554,58 @@ class HighlightingTest extends \PHPUnit_Framework_TestCase
         );
     }
 
+    public function testSetAndGetBoundaryScannerChars()
+    {
+        $value = "\n";
+        $this->hlt->setBoundaryScannerChars($value);
+
+        $this->assertEquals(
+            $value,
+            $this->hlt->getBoundaryScannerChars()
+        );
+    }
+
+    public function testSetAndGetBoundaryScannerMaxScan()
+    {
+        $value = 15;
+        $this->hlt->setBoundaryScannerMaxScan($value);
+
+        $this->assertEquals(
+            $value,
+            $this->hlt->getBoundaryScannerMaxScan()
+        );
+    }
+
+    public function testSetAndGetBoundaryScannerType()
+    {
+        $value = 'SENTENCE';
+        $this->hlt->setBoundaryScannerType($value);
+
+        $this->assertEquals(
+            $value,
+            $this->hlt->getBoundaryScannerType()
+        );
+    }
+
+    public function testSetAndGetBoundaryScannerCountry()
+    {
+        $value = 'DE';
+        $this->hlt->setBoundaryScannerCountry($value);
+
+        $this->assertEquals(
+            $value,
+            $this->hlt->getBoundaryScannerCountry()
+        );
+    }
+
+    public function testSetAndGetBoundaryScannerLanguage()
+    {
+        $value = 'fr';
+        $this->hlt->setBoundaryScannerLanguage($value);
+
+        $this->assertEquals(
+            $value,
+            $this->hlt->getBoundaryScannerLanguage()
+        );
+    }
 }

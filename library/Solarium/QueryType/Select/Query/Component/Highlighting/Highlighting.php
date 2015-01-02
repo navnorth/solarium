@@ -37,6 +37,7 @@
  * @namespace
  */
 namespace Solarium\QueryType\Select\Query\Component\Highlighting;
+
 use Solarium\QueryType\Select\Query\Query as SelectQuery;
 use Solarium\QueryType\Select\Query\Component\Component;
 use Solarium\QueryType\Select\RequestBuilder\Component\Highlighting as RequestBuilder;
@@ -59,6 +60,26 @@ class Highlighting extends Component
      * Value for fragmenter option regex
      */
     const FRAGMENTER_REGEX = 'regex';
+
+    /**
+     * Value for BoundaryScanner type
+     */
+    const BOUNDARYSCANNER_TYPE_CHARACTER = 'CHARACTER';
+
+    /**
+     * Value for BoundaryScanner type
+     */
+    const BOUNDARYSCANNER_TYPE_WORD = 'WORD';
+
+    /**
+     * Value for BoundaryScanner type
+     */
+    const BOUNDARYSCANNER_TYPE_SENTENCE = 'SENTENCE';
+
+    /**
+     * Value for BoundaryScanner type
+     */
+    const BOUNDARYSCANNER_TYPE_LINE = 'LINE';
 
     /**
      * Array of fields for highlighting
@@ -153,7 +174,9 @@ class Highlighting extends Component
 
         // validate field
         if ($field->getName() === null) {
-            throw new InvalidArgumentException('To add a highlighting field it needs to have at least a "name" setting');
+            throw new InvalidArgumentException(
+                'To add a highlighting field it needs to have at least a "name" setting'
+            );
         }
 
         $this->fields[$field->getName()] = $field;
@@ -165,7 +188,7 @@ class Highlighting extends Component
      * Add multiple fields for highlighting
      *
      * @param string|array $fields can be an array of object instances or a string with comma
-     * separated fieldnames
+     *                             separated fieldnames
      *
      * @return self Provides fluent interface
      */
@@ -198,7 +221,7 @@ class Highlighting extends Component
     public function removeField($field)
     {
         if (isset($this->fields[$field])) {
-           unset($this->fields[$field]);
+            unset($this->fields[$field]);
         }
 
         return $this;
@@ -395,6 +418,27 @@ class Highlighting extends Component
     public function getMaxAlternateFieldLength()
     {
         return $this->getOption('maxalternatefieldlength');
+    }
+    
+    /**
+     * Set preserveMulti option
+     *
+     * @param  boolean $preservemulti
+     * @return self    Provides fluent interface
+     */
+    public function setPreserveMulti($preservemulti)
+    {
+        return $this->setOption('preservemulti', $preservemulti);
+    }
+    
+    /**
+     * Get preserveMulti option
+     *
+     * @return boolean|null
+     */
+    public function getPreserveMulti()
+    {
+        return $this->getOption('preservemulti');
     }
 
     /**
@@ -767,11 +811,115 @@ class Highlighting extends Component
     /**
      * Get MultiValuedSeparatorChar option
      *
-     * @return $separator
+     * @return string
      */
     public function getMultiValuedSeparatorChar()
     {
         return $this->getOption('multivaluedseparatorchar');
     }
 
+    /**
+     * Set boundaryscannermaxscan option
+     *
+     * @param  int  $maximum
+     * @return self Provides fluent interface
+     */
+    public function setBoundaryScannerMaxScan($maximum)
+    {
+        return $this->setOption('boundaryscannermaxscan', $maximum);
+    }
+
+    /**
+     * Get boundaryscannermaxscan option
+     *
+     * @return int|null
+     */
+    public function getBoundaryScannerMaxScan()
+    {
+        return $this->getOption('boundaryscannermaxscan');
+    }
+
+    /**
+     * Set boundaryscannerchars option
+     *
+     * @param  string $chars
+     * @return self   Provides fluent interface
+     */
+    public function setBoundaryScannerChars($chars)
+    {
+        return $this->setOption('boundaryscannerchars', $chars);
+    }
+
+    /**
+     * Get boundaryscannerchars option
+     *
+     * @return string|null
+     */
+    public function getBoundaryScannerChars()
+    {
+        return $this->getOption('boundaryscannerchars');
+    }
+
+    /**
+     * Set boundaryscannertype option
+     *
+     * @param  string $type
+     * @return self   Provides fluent interface
+     */
+    public function setBoundaryScannerType($type)
+    {
+        return $this->setOption('boundaryscannertype', $type);
+    }
+
+    /**
+     * Get boundaryscannertype option
+     *
+     * @return string|null
+     */
+    public function getBoundaryScannerType()
+    {
+        return $this->getOption('boundaryscannertype');
+    }
+
+    /**
+     * Set boundaryscannerlanguage option
+     *
+     * @param  string $language
+     * @return self   Provides fluent interface
+     */
+    public function setBoundaryScannerLanguage($language)
+    {
+        return $this->setOption('boundaryscannerlanguage', $language);
+    }
+
+    /**
+     * Get boundaryscannerlanguage option
+     *
+     * @return string|null
+     */
+    public function getBoundaryScannerLanguage()
+    {
+        return $this->getOption('boundaryscannerlanguage');
+    }
+
+    /**
+     * Set boundaryscannercountry option
+     *
+     * @param  string $country
+     * @return self   Provides fluent interface
+     */
+    public function setBoundaryScannerCountry($country)
+    {
+        return $this->setOption('boundaryscannercountry', $country);
+    }
+
+    /**
+     * Get boundaryscannercountry option
+     *
+     * @return string|null
+     */
+    public function getBoundaryScannerCountry()
+    {
+        return $this->getOption('boundaryscannercountry');
+    }
 }

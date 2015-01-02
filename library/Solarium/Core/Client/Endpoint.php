@@ -37,6 +37,7 @@
  * @namespace
  */
 namespace Solarium\Core\Client;
+
 use Solarium\Core\Configurable;
 
 /**
@@ -44,7 +45,6 @@ use Solarium\Core\Configurable;
  */
 class Endpoint extends Configurable
 {
-
     /**
      * Default options
      *
@@ -54,6 +54,7 @@ class Endpoint extends Configurable
      * @var array
      */
     protected $options = array(
+        'scheme'  => 'http',
         'host'    => '127.0.0.1',
         'port'    => 8983,
         'path'    => '/solr',
@@ -211,6 +212,27 @@ class Endpoint extends Configurable
     }
 
     /**
+     * Set scheme option
+     *
+     * @param  string  $scheme
+     * @return self Provides fluent interface
+     */
+    public function setScheme($scheme)
+    {
+        return $this->setOption('scheme', $scheme);
+    }
+
+    /**
+     * Get scheme option
+     *
+     * @return string
+     */
+    public function getScheme()
+    {
+        return $this->getOption('scheme');
+    }
+
+    /**
      * Get the base url for all requests
      *
      * Based on host, path, port and core options.
@@ -219,7 +241,7 @@ class Endpoint extends Configurable
      */
     public function getBaseUri()
     {
-        $uri = 'http://' . $this->getHost() . ':' . $this->getPort() . $this->getPath() . '/';
+        $uri = $this->getScheme() . '://' . $this->getHost() . ':' . $this->getPort() . $this->getPath() . '/';
 
         $core = $this->getCore();
         if (!empty($core)) {
@@ -227,5 +249,57 @@ class Endpoint extends Configurable
         }
 
         return $uri;
+    }
+
+    /**
+     * Set HTTP basic auth settings
+     *
+     * If one or both values are NULL authentication will be disabled
+     *
+     * @param  string $username
+     * @param  string $password
+     * @return self   Provides fluent interface
+     */
+    public function setAuthentication($username, $password)
+    {
+        $this->setOption('username', $username);
+        $this->setOption('password', $password);
+
+        return $this;
+    }
+
+    /**
+     * Get HTTP basic auth settings
+     *
+     * @return array
+     */
+    public function getAuthentication()
+    {
+        return array(
+            'username' => $this->getOption('username'),
+            'password' => $this->getOption('password'),
+        );
+    }
+
+    /**
+     * Magic method enables a object to be transformed to a string
+     *
+     * Get a summary showing significant variables in the object
+     * note: uri resource is decoded for readability
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        $output = __CLASS__ . '::__toString' . "\n"
+                . 'base uri: ' . $this->getBaseUri() . "\n"
+                . 'host: ' . $this->getHost() . "\n"
+                . 'port: ' . $this->getPort() ."\n"
+                . 'path: ' . $this->getPath() ."\n"
+                . 'core: ' . $this->getCore() . "\n"
+                . 'timeout: ' . $this->getTimeout() . "\n"
+                . 'authentication: ' . print_r($this->getAuthentication(), 1);
+
+        return $output;
     }
 }

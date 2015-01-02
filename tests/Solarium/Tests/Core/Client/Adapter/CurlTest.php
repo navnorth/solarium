@@ -30,6 +30,7 @@
  */
 
 namespace Solarium\Tests\Core\Client\Adapter;
+
 use Solarium\Core\Client\Adapter\Curl as CurlAdapter;
 use Solarium\Core\Client\Request;
 use Solarium\Core\Client\Endpoint;
@@ -55,15 +56,18 @@ class CurlTest extends \PHPUnit_Framework_TestCase
     {
         $data = 'data';
         $headers = array('X-dummy: data');
+        $handler = curl_init();
 
         // this should be ok, no exception
-        $this->adapter->check($data, $headers);
+        $this->adapter->check($data, $headers, $handler);
 
         $data = '';
         $headers = array();
 
         $this->setExpectedException('Solarium\Exception\HttpException');
-        $this->adapter->check($data, $headers);
+        $this->adapter->check($data, $headers, $handler);
+
+        curl_close($handler);
     }
 
     public function testExecute()
@@ -85,5 +89,4 @@ class CurlTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($data, $response);
     }
-
 }

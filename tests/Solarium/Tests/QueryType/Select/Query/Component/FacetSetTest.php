@@ -30,13 +30,13 @@
  */
 
 namespace Solarium\Tests\QueryType\Select\Query\Component;
+
 use Solarium\QueryType\Select\Query\Component\FacetSet;
 use Solarium\QueryType\Select\Query\Query;
 use Solarium\QueryType\Select\Query\Component\Facet\Query as FacetQuery;
 
 class FacetSetTest extends \PHPUnit_Framework_TestCase
 {
-
     /**
      * @var FacetSet
      */
@@ -79,12 +79,18 @@ class FacetSetTest extends \PHPUnit_Framework_TestCase
 
     public function testGetResponseParser()
     {
-        $this->assertInstanceOf('Solarium\QueryType\Select\ResponseParser\Component\FacetSet', $this->facetSet->getResponseParser());
+        $this->assertInstanceOf(
+            'Solarium\QueryType\Select\ResponseParser\Component\FacetSet',
+            $this->facetSet->getResponseParser()
+        );
     }
 
     public function testGetRequestBuilder()
     {
-        $this->assertInstanceOf('Solarium\QueryType\Select\RequestBuilder\Component\FacetSet', $this->facetSet->getRequestBuilder());
+        $this->assertInstanceOf(
+            'Solarium\QueryType\Select\RequestBuilder\Component\FacetSet',
+            $this->facetSet->getRequestBuilder()
+        );
     }
 
     public function testSetAndGetSort()
@@ -314,7 +320,7 @@ class FacetSetTest extends \PHPUnit_Framework_TestCase
     public function testCreateFacetAdd()
     {
         $type = FacetSet::FACET_FIELD;
-        $options = array('key' => 'mykey','optionA' => 1, 'optionB' => 2);
+        $options = array('key' => 'mykey', 'optionA' => 1, 'optionB' => 2);
         $facet = $this->facetSet->createFacet($type, $options);
 
         $this->assertEquals($facet, $this->facetSet->getFacet('mykey'));
@@ -403,10 +409,24 @@ class FacetSetTest extends \PHPUnit_Framework_TestCase
         $observer->createFacetRange($options, $add);
     }
 
+    /**
+     * @dataProvider createFacetAddProvider
+     */
+    public function testCreateFacetPivot($add)
+    {
+        $options = array('optionA' => 1, 'optionB' => 2);
+
+        $observer = $this->getMock('Solarium\QueryType\Select\Query\Component\FacetSet', array('createFacet'));
+        $observer->expects($this->once())
+                 ->method('createFacet')
+                 ->with($this->equalTo(FacetSet::FACET_PIVOT), $this->equalTo($options), $add);
+
+        $observer->createFacetPivot($options, $add);
+    }
+
     public function testSetAndGetExtractFromResponse()
     {
         $this->facetSet->setExtractFromResponse(true);
         $this->assertEquals(true, $this->facetSet->getExtractFromResponse());
     }
-
 }

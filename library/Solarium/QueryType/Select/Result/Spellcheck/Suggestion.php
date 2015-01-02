@@ -43,25 +43,22 @@ namespace Solarium\QueryType\Select\Result\Spellcheck;
  */
 class Suggestion
 {
-
     /**
      * Constructor
      *
-     * @param int    $numFound
-     * @param int    $startOffset
-     * @param int    $endOffset
-     * @param int    $originalFrequency
-     * @param string $word
-     * @param int    $frequency
+     * @param int   $numFound
+     * @param int   $startOffset
+     * @param int   $endOffset
+     * @param int   $originalFrequency
+     * @param array $words
      */
-    public function __construct($numFound, $startOffset, $endOffset, $originalFrequency, $word, $frequency)
+    public function __construct($numFound, $startOffset, $endOffset, $originalFrequency, $words)
     {
         $this->numFound = $numFound;
         $this->startOffset = $startOffset;
         $this->endOffset = $endOffset;
         $this->originalFrequency = $originalFrequency;
-        $this->word = $word;
-        $this->frequency = $frequency;
+        $this->words = $words;
     }
 
     /**
@@ -107,13 +104,28 @@ class Suggestion
     }
 
     /**
-     * Get word
+     * Get first word
      *
-     * @return string
+     * @return string|null
      */
     public function getWord()
     {
-        return $this->word;
+        $word = reset($this->words);
+        if (isset($word['word'])) {
+            return $word['word'];
+        } else {
+            return $word;
+        }
+    }
+
+    /**
+     * Get all words (and frequencies)
+     *
+     * @return array
+     */
+    public function getWords()
+    {
+        return $this->words;
     }
 
     /**
@@ -125,7 +137,11 @@ class Suggestion
      */
     public function getFrequency()
     {
-        return $this->frequency;
+        $word = reset($this->words);
+        if (isset($word['freq'])) {
+            return $word['freq'];
+        } else {
+            return null;
+        }
     }
-
 }

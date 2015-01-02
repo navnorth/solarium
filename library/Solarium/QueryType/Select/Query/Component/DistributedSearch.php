@@ -37,6 +37,7 @@
  * @namespace
  */
 namespace Solarium\QueryType\Select\Query\Component;
+
 use Solarium\QueryType\Select\Query\Query as SelectQuery;
 use Solarium\QueryType\Select\RequestBuilder\Component\DistributedSearch as RequestBuilder;
 
@@ -44,16 +45,23 @@ use Solarium\QueryType\Select\RequestBuilder\Component\DistributedSearch as Requ
  * Distributed Search (sharding) component
  *
  * @link http://wiki.apache.org/solr/DistributedSearch
+ * @link http://wiki.apache.org/solr/SolrCloud/
  */
 class DistributedSearch extends Component
 {
-
     /**
      * Request to be distributed across all shards in the list
      *
      * @var array
      */
     protected $shards = array();
+
+    /**
+     * Requests will be distributed across collections in this list
+     *
+     * @var array
+     */
+    protected $collections = array();
 
     /**
      * Get component type
@@ -99,6 +107,9 @@ class DistributedSearch extends Component
             switch ($name) {
                 case 'shards':
                     $this->setShards($value);
+                    break;
+                case 'collections':
+                    $this->setCollections($value);
                     break;
             }
         }
@@ -233,5 +244,88 @@ class DistributedSearch extends Component
     public function getShardRequestHandler()
     {
         return $this->getOption('shardhandler');
+    }
+
+    /**
+     * Add a collection
+     *
+     * @param  string $key        unique string
+     * @param  string $collection The syntax is host:port/base_url
+     * @return self   Provides fluent interface
+     * @link http://wiki.apache.org/solr/SolrCloud/
+     */
+    public function addCollection($key, $collection)
+    {
+        $this->collections[$key] = $collection;
+
+        return $this;
+    }
+
+    /**
+     * Add multiple collections
+     *
+     * @param  array $collections
+     * @return self  Provides fluent interface
+     */
+    public function addCollections(array $collections)
+    {
+        foreach ($collections as $key => $collection) {
+            $this->addCollection($key, $collection);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Remove a collection
+     *
+     * @param  string $key
+     * @return self   Provides fluent interface
+     */
+    public function removeCollection($key)
+    {
+        if (isset($this->collections[$key])) {
+            unset($this->collections[$key]);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Remove all collections
+     *
+     * @return self Provides fluent interface
+     */
+    public function clearCollections()
+    {
+        $this->collections = array();
+
+        return $this;
+    }
+
+    /**
+     * Set multiple collections
+     *
+     * This overwrites any existing collections
+     *
+     * @param  array $collections Associative array of collections
+     * @return self  Provides fluent interface
+     */
+    public function setCollections(array $collections)
+    {
+        $this->clearCollections();
+        $this->addCollections($collections);
+
+        return $this;
+    }
+
+    /**
+     * Get a list of the collections
+     *
+     * @return array
+     */
+    public function getCollections()
+    {
+        return $this->collections;
     }
 }

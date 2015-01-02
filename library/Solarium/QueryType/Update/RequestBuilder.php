@@ -37,6 +37,7 @@
  * @namespace
  */
 namespace Solarium\QueryType\Update;
+
 use Solarium\Client;
 use Solarium\Core\Client\Request;
 use Solarium\QueryType\Update\Query\Query as UpdateQuery;
@@ -49,11 +50,10 @@ use Solarium\Exception\RuntimeException;
  */
 class RequestBuilder extends BaseRequestBuilder
 {
-
     /**
      * Build request for an update query
      *
-     * @param  UpdateQuery $query
+     * @param  QueryInterface|UpdateQuery $query
      * @return Request
      */
     public function build(QueryInterface $query)
@@ -80,7 +80,7 @@ class RequestBuilder extends BaseRequestBuilder
         foreach ($query->getCommands() as $command) {
             switch ($command->getType()) {
                 case UpdateQuery::COMMAND_ADD:
-                    $xml .= $this->buildAddXml($command);
+                    $xml .= $this->buildAddXml($command, $query);
                     break;
                 case UpdateQuery::COMMAND_DELETE:
                     $xml .= $this->buildDeleteXml($command);
@@ -107,10 +107,11 @@ class RequestBuilder extends BaseRequestBuilder
     /**
      * Build XML for an add command
      *
-     * @param  Query\Command\Add $command
+     * @param  \Solarium\QueryType\Update\Query\Command\Add $command
+     * @param  UpdateQuery                                  $query
      * @return string
      */
-    public function buildAddXml($command)
+    public function buildAddXml($command, $query = null)
     {
         $xml = '<add';
         $xml .= $this->boolAttrib('overwrite', $command->getOverwrite());
@@ -124,13 +125,19 @@ class RequestBuilder extends BaseRequestBuilder
 
             foreach ($doc->getFields() as $name => $value) {
                 $boost = $doc->getFieldBoost($name);
+                $modifier = $doc->getFieldModifier($name);
                 if (is_array($value)) {
                     foreach ($value as $multival) {
-                        $xml .= $this->buildFieldXml($name, $boost, $multival);
+                        $xml .= $this->buildFieldXml($name, $boost, $multival, $modifier, $query);
                     }
                 } else {
-                    $xml .= $this->buildFieldXml($name, $boost, $value);
+                    $xml .= $this->buildFieldXml($name, $boost, $value, $modifier, $query);
                 }
+            }
+
+            $version = $doc->getVersion();
+            if ($version !== null) {
+                $xml .= $this->buildFieldXml('_version_', null, $version);
             }
 
             $xml .= '</doc>';
@@ -146,15 +153,30 @@ class RequestBuilder extends BaseRequestBuilder
      *
      * Used in the add command
      *
-     * @param  string $name
-     * @param  float  $boost
-     * @param  mixed  $value
+     * @param  string      $name
+     * @param  float       $boost
+     * @param  mixed       $value
+     * @param  string      $modifier
+     * @param  UpdateQuery $query
      * @return string
      */
-    protected function buildFieldXml($name, $boost, $value)
+    protected function buildFieldXml($name, $boost, $value, $modifier = null, $query = null)
     {
+        if ($value instanceof \DateTime) {
+            $value = $query->getHelper()->formatDate($value);
+        }
+
         $xml = '<field name="' . $name . '"';
         $xml .= $this->attrib('boost', $boost);
+        $xml .= $this->attrib('update', $modifier);
+        if ($value === null) {
+            $xml .= $this->attrib('null', 'true');
+        } else if ($value === false) {
+            $value = 'false';
+        } else if ($value === true) {
+            $value = 'true';
+        }
+
         $xml .= '>' . htmlspecialchars($value, ENT_NOQUOTES, 'UTF-8');
         $xml .= '</field>';
 
@@ -164,7 +186,7 @@ class RequestBuilder extends BaseRequestBuilder
     /**
      * Build XML for a delete command
      *
-     * @param  Query\Command\Delete $command
+     * @param  \Solarium\QueryType\Update\Query\Command\Delete $command
      * @return string
      */
     public function buildDeleteXml($command)
@@ -184,7 +206,7 @@ class RequestBuilder extends BaseRequestBuilder
     /**
      * Build XML for an update command
      *
-     * @param  Query\Command\Optimize $command
+     * @param  \Solarium\QueryType\Update\Query\Command\Optimize $command
      * @return string
      */
     public function buildOptimizeXml($command)
@@ -201,7 +223,7 @@ class RequestBuilder extends BaseRequestBuilder
     /**
      * Build XML for a commit command
      *
-     * @param  Query\Command\Commit $command
+     * @param  \Solarium\QueryType\Update\Query\Command\Commit $command
      * @return string
      */
     public function buildCommitXml($command)
@@ -209,7 +231,7 @@ class RequestBuilder extends BaseRequestBuilder
         $xml = '<commit';
         $xml .= $this->boolAttrib('softCommit', $command->getSoftCommit());
         $xml .= $this->boolAttrib('waitSearcher', $command->getWaitSearcher());
-        $xml .= $this->boolAttrib('expungeDeletes',$command->getExpungeDeletes());
+        $xml .= $this->boolAttrib('expungeDeletes', $command->getExpungeDeletes());
         $xml .= '/>';
 
         return $xml;
@@ -224,5 +246,4 @@ class RequestBuilder extends BaseRequestBuilder
     {
         return '<rollback/>';
     }
-
 }
